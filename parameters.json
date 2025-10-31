@@ -1,0 +1,37 @@
+{
+  "parameters": [
+    {
+      "name": "Input voltage Range",
+      "value": "",
+      "unit": "V",
+      "source_page": null,
+      "extraction_method": "not_found",
+      "confidence": 0,
+      "manually_edited": false,
+      "source_text": "",
+      "notes": ""
+    },
+    {
+      "name": "Output voltage Range",
+      "value": "",
+      "unit": "V",
+      "source_page": null,
+      "extraction_method": "not_found",
+      "confidence": 0,
+      "manually_edited": false,
+      "source_text": "",
+      "notes": ""
+    },
+    {
+      "name": "Output current",
+      "value": "",
+      "unit": "A",
+      "source_page": null,
+      "extraction_method": "not_found",
+      "confidence": 0,
+      "manually_edited": false,
+      "source_text": "",
+      "notes": ""
+    }
+  ]
+}

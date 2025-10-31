@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, CheckCircle, AlertCircle, XCircle, Download, FileJson } from 'lucide-react';
+import { Search, CheckCircle, AlertCircle, XCircle, Download, FileJson, MapPin } from 'lucide-react';
 import { Parameter, ExtractionMetadata } from '../types';
 
 interface ParameterListProps {
@@ -179,11 +179,18 @@ const ParameterList: React.FC<ParameterListProps> = ({
                       <span className="text-sm font-medium text-gray-700">
                         {index + 1}. {param.name}
                       </span>
-                      {param.source_page && (
-                        <span className="text-xs text-gray-500">
-                          Page {param.source_page}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {param.highlights && param.highlights.length > 0 && (
+                          <span title="Highlights available">
+                            <MapPin size={14} className="text-blue-500" />
+                          </span>
+                        )}
+                        {param.source_page && (
+                          <span className="text-xs text-gray-500">
+                            Page {param.source_page}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <input
                       type="text"

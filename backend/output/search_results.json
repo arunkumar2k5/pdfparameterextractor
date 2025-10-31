@@ -1,0 +1,35 @@
+{
+  "Input voltage Range": [
+    {
+      "line_number": 13,
+      "line_text": "- Input voltage range: 1.5V to 6.0V",
+      "value": "1.5",
+      "unit": "V",
+      "context": "- -2mm \u00d7 2mm wettable flank WSON\n- -3mm \u00d7 3mm wettable flank VSON\n- Input voltage range: 1.5V to 6.0V\n- Output voltage range:\n- -Fixed option: 0.65V to 5.0V"
+    }
+  ],
+  "Output voltage Range": [],
+  "Output current": [
+    {
+      "line_number": 154,
+      "line_text": "| I OUT | Output current          | Output current          | 0     |       | 1     | A      |",
+      "value": "0",
+      "unit": "",
+      "context": "| V OUT |                         | Adjustable version      | 0.55  |       | 5.5   | V      |\n| V OUT |                         | Fixed version           | 0.65  |       | 5.0   | V      |\n| I OUT | Output current          | Output current          | 0     |       | 1     | A      |\n| C IN  | Input capacitor         | Input capacitor         | 1     |       |       | \u00b5F     |\n| C OUT | Output capacitor (1)    | Output capacitor (1)    | 1     |       | 220   | \u00b5F     |"
+    },
+    {
+      "line_number": 203,
+      "line_text": "| I CL        | Output current limit         | V OUT(NOM) < 1 V, V OUT = V OUT(NOM) - 0.2 V, V IN = 2.0 V             | V OUT(NOM) < 1 V, V OUT = V OUT(NOM) - 0.2 V, V IN = 2.0 V             | 1.22   | 1.5   | 1.83  | A      |",
+      "value": "2.0",
+      "unit": "V",
+      "context": "| I SHDN      | Shutdown current             | V EN \u2264 0.3 V, 1.5 V \u2264 V IN \u2264 6.0 V                                     | -40\u00b0C \u2264 T J \u2264 150\u00b0C                                                    |        | 0.1   | 1.55  |        |\n| I FB        | Feedback pin current         | Adjustable only                                                        | Adjustable only                                                        |        | 0.01  | 0.1   | \u00b5A     |\n| I CL        | Output current limit         | V OUT(NOM) < 1 V, V OUT = V OUT(NOM) - 0.2 V, V IN = 2.0 V             | V OUT(NOM) < 1 V, V OUT = V OUT(NOM) - 0.2 V, V IN = 2.0 V             | 1.22   | 1.5   | 1.83  | A      |\n| I CL        | Output current limit         | V OUT(NOM) \u2265 1 V, V OUT = V OUT(NOM) \u00d7 0.85, V IN = V OUT(NOM) + 1.0 V | V OUT(NOM) \u2265 1 V, V OUT = V OUT(NOM) \u00d7 0.85, V IN = V OUT(NOM) + 1.0 V | 1.22   | 1.5   | 1.83  | A      |\n| I SC        | Short-circuit current limit  | V OUT = 0 V                                                            | V OUT(NOM) < 1 V, V IN = 2.0 V                                         | 500    | 680   | 850   | mA     |"
+    },
+    {
+      "line_number": 204,
+      "line_text": "| I CL        | Output current limit         | V OUT(NOM) \u2265 1 V, V OUT = V OUT(NOM) \u00d7 0.85, V IN = V OUT(NOM) + 1.0 V | V OUT(NOM) \u2265 1 V, V OUT = V OUT(NOM) \u00d7 0.85, V IN = V OUT(NOM) + 1.0 V | 1.22   | 1.5   | 1.83  | A      |",
+      "value": "1.22",
+      "unit": "",
+      "context": "| I FB        | Feedback pin current         | Adjustable only                                                        | Adjustable only                                                        |        | 0.01  | 0.1   | \u00b5A     |\n| I CL        | Output current limit         | V OUT(NOM) < 1 V, V OUT = V OUT(NOM) - 0.2 V, V IN = 2.0 V             | V OUT(NOM) < 1 V, V OUT = V OUT(NOM) - 0.2 V, V IN = 2.0 V             | 1.22   | 1.5   | 1.83  | A      |\n| I CL        | Output current limit         | V OUT(NOM) \u2265 1 V, V OUT = V OUT(NOM) \u00d7 0.85, V IN = V OUT(NOM) + 1.0 V | V OUT(NOM) \u2265 1 V, V OUT = V OUT(NOM) \u00d7 0.85, V IN = V OUT(NOM) + 1.0 V | 1.22   | 1.5   | 1.83  | A      |\n| I SC        | Short-circuit current limit  | V OUT = 0 V                                                            | V OUT(NOM) < 1 V, V IN = 2.0 V                                         | 500    | 680   | 850   | mA     |\n| I SC        | Short-circuit current limit  | V OUT = 0 V                                                            | V OUT(NOM) \u2265 1 V, V IN = V OUT(NOM) + 1.0 V                            | 500    | 680   | 850   | mA     |"
+    }
+  ]
+}

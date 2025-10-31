@@ -8,6 +8,7 @@ import { Parameter, ExtractionMetadata } from './types';
 function App() {
   const [parameters, setParameters] = useState<Parameter[]>([]);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [markdownContent, setMarkdownContent] = useState<string>('');
   const [selectedParameter, setSelectedParameter] = useState<Parameter | null>(null);
   const [metadata, setMetadata] = useState<ExtractionMetadata | null>(null);
   const [loading, setLoading] = useState(false);
@@ -29,8 +30,19 @@ function App() {
     setParameters(paramObjects);
   };
 
-  const handlePdfUploaded = (url: string) => {
+  const handlePdfUploaded = async (url: string) => {
     setPdfUrl(url);
+    
+    // Fetch markdown content
+    try {
+      const response = await fetch('http://localhost:8000/api/markdown');
+      if (response.ok) {
+        const data = await response.json();
+        setMarkdownContent(data.markdown);
+      }
+    } catch (error) {
+      console.error('Failed to fetch markdown:', error);
+    }
   };
 
   const handleExtractionComplete = (results: Parameter[], meta: ExtractionMetadata) => {
@@ -94,6 +106,7 @@ function App() {
           <Panel defaultSize={50} minSize={30}>
             <PDFViewer
               pdfUrl={pdfUrl}
+              markdownContent={markdownContent}
               selectedParameter={selectedParameter}
             />
           </Panel>

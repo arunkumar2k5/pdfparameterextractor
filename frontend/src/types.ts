@@ -4,10 +4,12 @@ export interface Parameter {
   value: string;
   unit: string;
   source_page: number | null;
+  markdown_line?: number | null;
   extraction_method: string;
   confidence: number;
   manually_edited: boolean;
   source_text: string;
+  markdown_context?: string;
   notes: string;
   highlights: Highlight[];
 }

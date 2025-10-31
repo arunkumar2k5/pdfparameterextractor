@@ -11,6 +11,8 @@ import pandas as pd
 
 from pdf_processor import PDFProcessor
 from parameter_extractor import ParameterExtractor
+from markdown_converter import MarkdownConverter
+from markdown_parameter_extractor import MarkdownParameterExtractor
 
 app = FastAPI(title="Engineering Parameter Extraction Tool")
 
@@ -32,7 +34,10 @@ session_data = {
     "parameters": [],
     "pdf_path": None,
     "pdf_text": None,
-    "pdf_pages": []
+    "pdf_pages": [],
+    "markdown": None,
+    "page_mapping": {},
+    "total_pages": 0
 }
 
 
@@ -65,9 +70,12 @@ async def upload_parameters(file: UploadFile = File(...)):
             with open(file_path, 'r') as f:
                 data = json.load(f)
                 if isinstance(data, list):
-                    parameters = data
+                    # Handle list of strings or list of dicts with 'name' field
+                    parameters = [p if isinstance(p, str) else p.get('name', str(p)) for p in data]
                 elif isinstance(data, dict) and 'parameters' in data:
-                    parameters = data['parameters']
+                    param_list = data['parameters']
+                    # Handle list of strings or list of dicts with 'name' field
+                    parameters = [p if isinstance(p, str) else p.get('name', str(p)) for p in param_list]
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format")
         
@@ -102,21 +110,31 @@ async def upload_pdf(file: UploadFile = File(...)):
         with open(pdf_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         
-        # Process PDF
+        # Process PDF with both methods
+        # 1. Original PDF processing (for highlighting)
         processor = PDFProcessor(str(pdf_path))
         pdf_text = processor.extract_text()
         pdf_pages = processor.extract_pages()
+        
+        # 2. Docling markdown conversion (for better search)
+        md_converter = MarkdownConverter()
+        md_result = md_converter.convert_pdf_to_markdown(str(pdf_path))
         
         # Store in session
         session_data["pdf_path"] = str(pdf_path)
         session_data["pdf_text"] = pdf_text
         session_data["pdf_pages"] = pdf_pages
+        session_data["markdown"] = md_result["markdown"]
+        session_data["page_mapping"] = md_result["page_mapping"]
+        session_data["total_pages"] = md_result["total_pages"]
         
         return {
             "success": True,
             "filename": file.filename,
             "pages": len(pdf_pages),
-            "pdf_url": f"/api/pdf/{file.filename}"
+            "pdf_url": f"/api/pdf/{file.filename}",
+            "markdown_length": len(md_result["markdown"]),
+            "has_markdown": True
         }
     
     except Exception as e:
@@ -125,7 +143,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 @app.post("/api/extract")
 async def extract_parameters():
-    """Extract parameters from uploaded PDF"""
+    """Extract parameters from uploaded PDF using markdown"""
     try:
         if not session_data["parameters"]:
             raise HTTPException(status_code=400, detail="No parameters uploaded")
@@ -133,11 +151,19 @@ async def extract_parameters():
         if not session_data["pdf_path"]:
             raise HTTPException(status_code=400, detail="No PDF uploaded")
         
-        # Extract parameters
-        extractor = ParameterExtractor(
-            session_data["pdf_text"],
-            session_data["pdf_pages"]
-        )
+        # Use markdown extractor if available, fallback to PDF extractor
+        if session_data.get("markdown"):
+            extractor = MarkdownParameterExtractor(
+                session_data["markdown"],
+                session_data["page_mapping"],
+                session_data["pdf_pages"]
+            )
+        else:
+            # Fallback to original PDF extractor
+            extractor = ParameterExtractor(
+                session_data["pdf_text"],
+                session_data["pdf_pages"]
+            )
         
         results = []
         for param_name in session_data["parameters"]:
@@ -150,7 +176,8 @@ async def extract_parameters():
             "metadata": {
                 "total_parameters": len(results),
                 "extracted_count": sum(1 for r in results if r["value"] != "NF"),
-                "not_found_count": sum(1 for r in results if r["value"] == "NF")
+                "not_found_count": sum(1 for r in results if r["value"] == "NF"),
+                "used_markdown": session_data.get("markdown") is not None
             }
         }
     
@@ -166,6 +193,19 @@ async def get_pdf(filename: str):
         raise HTTPException(status_code=404, detail="PDF not found")
     
     return FileResponse(pdf_path, media_type="application/pdf")
+
+
+@app.get("/api/markdown")
+async def get_markdown():
+    """Get markdown content and page mapping"""
+    if not session_data.get("markdown"):
+        raise HTTPException(status_code=404, detail="No markdown available")
+    
+    return JSONResponse(content={
+        "markdown": session_data["markdown"],
+        "page_mapping": session_data["page_mapping"],
+        "total_pages": session_data["total_pages"]
+    })
 
 
 @app.post("/api/export")
