@@ -1,7 +1,7 @@
 {
   "parameters": [
     {
-      "name": "Input voltage Range",
+      "name": "Input voltage Max",
       "value": "",
       "unit": "V",
       "source_page": null,
@@ -12,7 +12,7 @@
       "notes": ""
     },
     {
-      "name": "Output voltage Range",
+      "name": "Output voltage Max",
       "value": "",
       "unit": "V",
       "source_page": null,
@@ -23,9 +23,31 @@
       "notes": ""
     },
     {
-      "name": "Output current",
+      "name": "Output current Max",
       "value": "",
       "unit": "A",
+      "source_page": null,
+      "extraction_method": "not_found",
+      "confidence": 0,
+      "manually_edited": false,
+      "source_text": "",
+      "notes": ""
+    },
+    {
+      "name": "Feedback voltage Max",
+      "value": "",
+      "unit": "V",
+      "source_page": null,
+      "extraction_method": "not_found",
+      "confidence": 0,
+      "manually_edited": false,
+      "source_text": "",
+      "notes": ""
+    },
+    {
+      "name": "Junction Temperature Max",
+      "value": "",
+      "unit": "°C",
       "source_page": null,
       "extraction_method": "not_found",
       "confidence": 0,

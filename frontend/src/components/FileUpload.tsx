@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Upload, FileText, FileSpreadsheet, PlayCircle } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Upload, FileText, FileSpreadsheet, PlayCircle, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import { Parameter, ExtractionMetadata } from '../types';
 
@@ -26,6 +26,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 }) => {
   const paramFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
+  const [extractionMode, setExtractionMode] = useState<'simple' | 'ai'>('simple');
 
   const handleParameterFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,7 +82,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       setLoading(true);
-      const response = await axios.post(`${API_BASE}/api/extract`);
+      const response = await axios.post(`${API_BASE}/api/extract`, {
+        mode: extractionMode
+      });
 
       if (response.data.success) {
         // Add IDs to results
@@ -100,6 +103,47 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
+      {/* Extraction Mode Selection */}
+      <div className="flex items-center gap-6 mb-4 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-gray-700">Extraction Mode:</span>
+          
+          {/* Simple Mode Radio */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="extraction-mode"
+              checked={extractionMode === 'simple'}
+              onChange={() => setExtractionMode('simple')}
+              className="w-4 h-4 text-blue-600 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-700">Simple Search</span>
+          </label>
+          
+          {/* AI Mode Radio */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="extraction-mode"
+              checked={extractionMode === 'ai'}
+              onChange={() => setExtractionMode('ai')}
+              className="w-4 h-4 text-purple-600 cursor-pointer"
+            />
+            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
+              <Sparkles size={16} className="text-purple-600" />
+              AI-Powered (OpenAI)
+            </span>
+          </label>
+        </div>
+        
+        {/* Info message for AI mode */}
+        {extractionMode === 'ai' && (
+          <div className="text-xs text-gray-600 italic">
+            Using OpenAI API key from backend/.env file
+          </div>
+        )}
+      </div>
+      
       <div className="flex items-center gap-4 flex-wrap">
         {/* Parameter File Upload */}
         <div className="flex items-center gap-2">

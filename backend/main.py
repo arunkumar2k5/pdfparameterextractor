@@ -13,6 +13,8 @@ from pdf_processor import PDFProcessor
 from parameter_extractor import ParameterExtractor
 from markdown_converter import MarkdownConverter
 from markdown_parameter_extractor import MarkdownParameterExtractor
+from openai_extractor import OpenAIExtractor
+import dev_cache
 
 app = FastAPI(title="Engineering Parameter Extraction Tool")
 
@@ -105,6 +107,37 @@ async def upload_pdf(file: UploadFile = File(...)):
         if not file.filename.lower().endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Only PDF files are supported")
         
+        # DEVELOPMENT MODE: Use cached data to skip slow conversion
+        if dev_cache.DEV_MODE and dev_cache.is_cache_available():
+            print("🚀 DEV MODE: Using cached PDF and markdown")
+            
+            # Load from cache
+            cached_pdf_path, markdown, page_mapping, total_pages = dev_cache.load_from_cache()
+            
+            # Process cached PDF for highlighting
+            processor = PDFProcessor(cached_pdf_path)
+            pdf_text = processor.extract_text()
+            pdf_pages = processor.extract_pages()
+            
+            # Store in session
+            session_data["pdf_path"] = cached_pdf_path
+            session_data["pdf_text"] = pdf_text
+            session_data["pdf_pages"] = pdf_pages
+            session_data["markdown"] = markdown
+            session_data["page_mapping"] = page_mapping
+            session_data["total_pages"] = total_pages
+            
+            return {
+                "success": True,
+                "filename": Path(cached_pdf_path).name,
+                "pages": len(pdf_pages),
+                "pdf_url": f"/api/pdf/{Path(cached_pdf_path).name}",
+                "markdown_length": len(markdown),
+                "has_markdown": True,
+                "dev_mode": True
+            }
+        
+        # PRODUCTION MODE: Normal processing
         # Save PDF file
         pdf_path = UPLOAD_DIR / file.filename
         with open(pdf_path, "wb") as buffer:
@@ -117,8 +150,14 @@ async def upload_pdf(file: UploadFile = File(...)):
         pdf_pages = processor.extract_pages()
         
         # 2. Docling markdown conversion (for better search)
+        print("⏳ Converting PDF to markdown with Docling...")
         md_converter = MarkdownConverter()
         md_result = md_converter.convert_pdf_to_markdown(str(pdf_path))
+        
+        # Save to cache for future dev use
+        if dev_cache.DEV_MODE:
+            print("💾 Saving to cache for future dev use...")
+            dev_cache.save_to_cache(str(pdf_path), md_result["markdown"], md_result["page_mapping"])
         
         # Store in session
         session_data["pdf_path"] = str(pdf_path)
@@ -134,7 +173,8 @@ async def upload_pdf(file: UploadFile = File(...)):
             "pages": len(pdf_pages),
             "pdf_url": f"/api/pdf/{file.filename}",
             "markdown_length": len(md_result["markdown"]),
-            "has_markdown": True
+            "has_markdown": True,
+            "dev_mode": False
         }
     
     except Exception as e:
@@ -142,8 +182,8 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 
 @app.post("/api/extract")
-async def extract_parameters():
-    """Extract parameters from uploaded PDF using markdown"""
+async def extract_parameters(request: Dict[str, Any]):
+    """Extract parameters from uploaded PDF using markdown or AI"""
     try:
         if not session_data["parameters"]:
             raise HTTPException(status_code=400, detail="No parameters uploaded")
@@ -151,24 +191,43 @@ async def extract_parameters():
         if not session_data["pdf_path"]:
             raise HTTPException(status_code=400, detail="No PDF uploaded")
         
-        # Use markdown extractor if available, fallback to PDF extractor
-        if session_data.get("markdown"):
-            extractor = MarkdownParameterExtractor(
-                session_data["markdown"],
-                session_data["page_mapping"],
-                session_data["pdf_pages"]
-            )
-        else:
-            # Fallback to original PDF extractor
-            extractor = ParameterExtractor(
-                session_data["pdf_text"],
-                session_data["pdf_pages"]
-            )
+        # Get extraction mode from request
+        mode = request.get("mode", "simple")  # "simple" or "ai"
         
         results = []
-        for param_name in session_data["parameters"]:
-            extraction = extractor.extract_parameter(param_name)
-            results.append(extraction)
+        
+        if mode == "ai":
+            # AI-powered extraction using OpenAI (reads API key from .env)
+            try:
+                extractor = OpenAIExtractor()  # Reads from .env automatically
+                results = extractor.extract_parameters(
+                    session_data["markdown"],
+                    session_data["parameters"],
+                    session_data.get("page_mapping")
+                )
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"OpenAI API key not configured. Please set OPENAI_API_KEY in backend/.env file")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"OpenAI extraction failed: {str(e)}")
+        
+        else:
+            # Simple search mode (existing logic)
+            if session_data.get("markdown"):
+                extractor = MarkdownParameterExtractor(
+                    session_data["markdown"],
+                    session_data["page_mapping"],
+                    session_data["pdf_pages"]
+                )
+            else:
+                # Fallback to original PDF extractor
+                extractor = ParameterExtractor(
+                    session_data["pdf_text"],
+                    session_data["pdf_pages"]
+                )
+            
+            for param_name in session_data["parameters"]:
+                extraction = extractor.extract_parameter(param_name)
+                results.append(extraction)
         
         return {
             "success": True,
@@ -177,10 +236,13 @@ async def extract_parameters():
                 "total_parameters": len(results),
                 "extracted_count": sum(1 for r in results if r["value"] != "NF"),
                 "not_found_count": sum(1 for r in results if r["value"] == "NF"),
+                "extraction_mode": mode,
                 "used_markdown": session_data.get("markdown") is not None
             }
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -188,11 +250,17 @@ async def extract_parameters():
 @app.get("/api/pdf/{filename}")
 async def get_pdf(filename: str):
     """Serve PDF file"""
+    # Check uploads directory first
     pdf_path = UPLOAD_DIR / filename
-    if not pdf_path.exists():
-        raise HTTPException(status_code=404, detail="PDF not found")
+    if pdf_path.exists():
+        return FileResponse(pdf_path, media_type="application/pdf")
     
-    return FileResponse(pdf_path, media_type="application/pdf")
+    # Check dev cache directory
+    cache_pdf_path = dev_cache.CACHE_DIR / filename
+    if cache_pdf_path.exists():
+        return FileResponse(cache_pdf_path, media_type="application/pdf")
+    
+    raise HTTPException(status_code=404, detail="PDF not found")
 
 
 @app.get("/api/markdown")

@@ -15,6 +15,13 @@ build/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+# Development cache
+backend/dev_cache_data/
+
+# Environment variables
+backend/.env
+.env
+
 # Node
 node_modules/
 npm-debug.log*

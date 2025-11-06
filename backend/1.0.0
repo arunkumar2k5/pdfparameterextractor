@@ -1,0 +1,38 @@
+Collecting openai
+  Downloading openai-2.7.1-py3-none-any.whl.metadata (29 kB)
+Collecting python-dotenv==1.0.0
+  Downloading python_dotenv-1.0.0-py3-none-any.whl.metadata (21 kB)
+Requirement already satisfied: anyio<5,>=3.5.0 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from openai) (3.7.1)
+Collecting distro<2,>=1.7.0 (from openai)
+  Using cached distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+Collecting httpx<1,>=0.23.0 (from openai)
+  Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Collecting jiter<1,>=0.10.0 (from openai)
+  Downloading jiter-0.11.1-cp313-cp313-win_amd64.whl.metadata (5.3 kB)
+Requirement already satisfied: pydantic<3,>=1.9.0 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from openai) (2.12.3)
+Requirement already satisfied: sniffio in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from openai) (1.3.1)
+Requirement already satisfied: tqdm>4 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from openai) (4.67.1)
+Requirement already satisfied: typing-extensions<5,>=4.11 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from openai) (4.15.0)
+Requirement already satisfied: idna>=2.8 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from anyio<5,>=3.5.0->openai) (3.11)
+Requirement already satisfied: certifi in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from httpx<1,>=0.23.0->openai) (2025.10.5)
+Collecting httpcore==1.* (from httpx<1,>=0.23.0->openai)
+  Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Requirement already satisfied: h11>=0.16 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from httpcore==1.*->httpx<1,>=0.23.0->openai) (0.16.0)
+Requirement already satisfied: annotated-types>=0.6.0 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from pydantic<3,>=1.9.0->openai) (0.7.0)
+Requirement already satisfied: pydantic-core==2.41.4 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from pydantic<3,>=1.9.0->openai) (2.41.4)
+Requirement already satisfied: typing-inspection>=0.4.2 in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from pydantic<3,>=1.9.0->openai) (0.4.2)
+Requirement already satisfied: colorama in c:\users\hp\documents\codes\pdfread\pdfparameterextractor\backend\venv\lib\site-packages (from tqdm>4->openai) (0.4.6)
+Downloading python_dotenv-1.0.0-py3-none-any.whl (19 kB)
+Downloading openai-2.7.1-py3-none-any.whl (1.0 MB)
+   ---- 1.… 985… eta 0:0…
+        MB  kB/s         
+Using cached distro-1.9.0-py3-none-any.whl (20 kB)
+Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Downloading jiter-0.11.1-cp313-cp313-win_amd64.whl (203 kB)
+Installing collected packages: python-dotenv, jiter, httpcore, distro, httpx, openai
+  Attempting uninstall: python-dotenv
+    Found existing installation: python-dotenv 1.2.1
+    Uninstalling python-dotenv-1.2.1:
+      Successfully uninstalled python-dotenv-1.2.1
+Successfully installed distro-1.9.0 httpcore-1.0.9 httpx-0.28.1 jiter-0.11.1 openai-2.7.1 python-dotenv-1.0.0
