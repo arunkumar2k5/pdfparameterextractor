@@ -16,19 +16,22 @@ load_dotenv()
 class OpenAIExtractor:
     """Extract parameters from markdown using OpenAI GPT-3.5"""
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, model: str = None):
         """
         Initialize OpenAI extractor.
         
         Args:
             api_key: OpenAI API key. If None, reads from .env file
+            model: OpenAI model name. If None, reads from .env file (defaults to gpt-3.5-turbo)
         """
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
         if not self.api_key:
             raise ValueError("OpenAI API key not provided. Set OPENAI_API_KEY in .env file or pass as parameter.")
         
         self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-3.5-turbo"
+        # Read model from parameter, env, or use default
+        self.model = model or os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+        print(f"✓ OpenAI extractor initialized with model: {self.model}")
     
     def extract_parameters(self, markdown: str, parameters: List[str], page_mapping: Dict = None) -> List[Dict[str, Any]]:
         """
@@ -58,19 +61,24 @@ class OpenAIExtractor:
                     }
                 ],
                 temperature=0.1,  # Low temperature for consistent extraction
-                max_tokens=2000,
+                max_tokens=4000,  # Increased for more parameters
                 response_format={"type": "json_object"}
             )
             
             # Parse the response
-            result = json.loads(response.choices[0].message.content)
+            response_content = response.choices[0].message.content
+            print(f"📥 Received response from OpenAI ({len(response_content)} chars)")
+            result = json.loads(response_content)
             extracted_params = result.get("parameters", [])
+            print(f"✓ Extracted {len(extracted_params)} parameters from AI response")
             
             # Post-process to match expected format
             return self._format_results(extracted_params, page_mapping)
             
         except Exception as e:
-            print(f"OpenAI extraction error: {str(e)}")
+            print(f"❌ OpenAI extraction error: {str(e)}")
+            import traceback
+            traceback.print_exc()
             # Return empty results on error
             return [self._create_not_found_result(param) for param in parameters]
     
@@ -85,6 +93,8 @@ Your task is to:
 4. Provide confidence scores based on how certain you are
 5. Include the source text snippet where you found the value
 6. Check for the parameters under the "Electrical Characteristics" section if not found search the rest of the document
+7. Look for maximum ratings, absolute maximum ratings, and recommended operating conditions sections
+8. For "Max" parameters, look for maximum values in specifications tables
 
 Be precise and only extract values that are explicitly stated in the datasheet.
 If a parameter is not found, mark it as "NF" (Not Found)."""
@@ -94,9 +104,19 @@ If a parameter is not found, mark it as "NF" (Not Found)."""
         param_list = "\n".join(f"{i+1}. {p}" for i, p in enumerate(parameters))
         
         # Truncate markdown if too long (to stay within token limits)
-        max_chars = 12000  # Roughly 3000 tokens
+        # GPT-4 has larger context, so adjust based on model
+        if 'gpt-4' in self.model.lower():
+            max_chars = 100000  # GPT-4 can handle much more
+        else:
+            max_chars = 30000  # GPT-3.5 limit
+        
+        truncated = False
         if len(markdown) > max_chars:
             markdown = markdown[:max_chars] + "\n\n[... datasheet truncated for length ...]"
+            truncated = True
+            print(f"⚠️  Warning: Markdown truncated to {max_chars} chars")
+        
+        print(f"📄 Processing {len(parameters)} parameters from {len(markdown)} chars of markdown (truncated: {truncated})")
         
         return f"""Extract the following parameters from this technical datasheet (in markdown format):
 

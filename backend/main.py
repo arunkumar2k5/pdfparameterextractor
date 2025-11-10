@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +14,7 @@ from parameter_extractor import ParameterExtractor
 from markdown_converter import MarkdownConverter
 from markdown_parameter_extractor import MarkdownParameterExtractor
 from openai_extractor import OpenAIExtractor
+from graph_analyzer import GraphAnalyzer
 import dev_cache
 
 app = FastAPI(title="Engineering Parameter Extraction Tool")
@@ -199,15 +200,28 @@ async def extract_parameters(request: Dict[str, Any]):
         if mode == "ai":
             # AI-powered extraction using OpenAI (reads API key from .env)
             try:
+                print(f"\n🤖 Starting AI extraction for {len(session_data['parameters'])} parameters...")
+                print(f"📋 Parameters: {session_data['parameters']}")
+                print(f"📄 Markdown length: {len(session_data.get('markdown', ''))} chars")
+                
                 extractor = OpenAIExtractor()  # Reads from .env automatically
                 results = extractor.extract_parameters(
                     session_data["markdown"],
                     session_data["parameters"],
                     session_data.get("page_mapping")
                 )
+                
+                print(f"✅ AI extraction completed: {len(results)} results returned")
+                found_count = sum(1 for r in results if r.get("value") != "NF")
+                print(f"   Found: {found_count}, Not found: {len(results) - found_count}")
+                
             except ValueError as e:
+                print(f"❌ API key error: {str(e)}")
                 raise HTTPException(status_code=400, detail=f"OpenAI API key not configured. Please set OPENAI_API_KEY in backend/.env file")
             except Exception as e:
+                print(f"❌ Extraction error: {str(e)}")
+                import traceback
+                traceback.print_exc()
                 raise HTTPException(status_code=500, detail=f"OpenAI extraction failed: {str(e)}")
         
         else:
@@ -292,6 +306,62 @@ async def export_data(data: Dict[str, Any]):
         return {"success": True}
     
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/analyze-graph")
+async def analyze_graph(
+    file: UploadFile = File(...),
+    question: str = Form(None)
+):
+    """Analyze graph image and extract equations or answer a custom question using OpenAI Vision API"""
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="Only image files are supported")
+        
+        print(f"\n📊 Received graph image: {file.filename}")
+        if question:
+            print(f"❓ Custom question: {question}")
+        
+        # Save uploaded image
+        image_path = UPLOAD_DIR / file.filename
+        with open(image_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        print(f"💾 Saved image to: {image_path}")
+        
+        # Analyze graph using OpenAI Vision
+        try:
+            analyzer = GraphAnalyzer()
+            result = analyzer.analyze_graph(str(image_path), custom_question=question)
+            
+            if result["success"]:
+                if result.get("question_answer"):
+                    print(f"✅ Question answered successfully")
+                else:
+                    print(f"✅ Graph analysis completed: {len(result['curves'])} curve(s) found")
+            else:
+                print(f"❌ Graph analysis failed: {result.get('error', 'Unknown error')}")
+            
+            return JSONResponse(content=result)
+            
+        except ValueError as e:
+            # API key not configured
+            raise HTTPException(
+                status_code=400, 
+                detail=f"OpenAI API key not configured. Please set OPENAI_API_KEY in backend/.env file"
+            )
+        except Exception as e:
+            print(f"❌ Graph analysis error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Graph analysis failed: {str(e)}")
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

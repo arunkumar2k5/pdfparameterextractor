@@ -1,59 +1,116 @@
 {
   "parameters": [
     {
-      "name": "Input voltage Max",
-      "value": "",
+      "name": "Input Voltage",
+      "value": NaN,
       "unit": "V",
-      "source_page": null,
-      "extraction_method": "not_found",
-      "confidence": 0,
-      "manually_edited": false,
-      "source_text": "",
-      "notes": ""
+      "Symbol": "VI",
+      "confidence": 0
     },
     {
-      "name": "Output voltage Max",
-      "value": "",
+      "name": "Feedback Voltage",
+      "value": NaN,
       "unit": "V",
-      "source_page": null,
-      "extraction_method": "not_found",
-      "confidence": 0,
-      "manually_edited": false,
-      "source_text": "",
-      "notes": ""
+      "Symbol": "V(BG)",
+      "confidence": 0
     },
     {
-      "name": "Output current Max",
-      "value": "",
+      "name": "Quiescent Current",
+      "value": NaN,
       "unit": "A",
-      "source_page": null,
-      "extraction_method": "not_found",
-      "confidence": 0,
-      "manually_edited": false,
-      "source_text": "",
-      "notes": ""
+      "Symbol": "IQ",
+      "confidence": 0
     },
     {
-      "name": "Feedback voltage Max",
-      "value": "",
+      "name": "Output Current",
+      "value": NaN,
+      "unit": "A",
+      "Symbol": "IO",
+      "confidence": 0
+    },
+    {
+      "name": "Short-circuit current limit",
+      "value": NaN,
+      "unit": "A",
+      "Symbol": "I(LIMx)",
+      "confidence": 0
+    },
+    {
+      "name": "Power-supply rejection ratio",
+      "value": NaN,
+      "unit": NaN,
+      "Symbol": "IO/ILIM",
+      "confidence": 0
+    },
+    {
+      "name": "Junction-to-ambient thermal resistance",
+      "value": NaN,
+      "unit": "°C/W",
+      "Symbol": "RθJA",
+      "confidence": 0
+    },
+    {
+      "name": "Logic input low level",
+      "value": NaN,
       "unit": "V",
-      "source_page": null,
-      "extraction_method": "not_found",
-      "confidence": 0,
-      "manually_edited": false,
-      "source_text": "",
-      "notes": ""
+      "Symbol": "VIL",
+      "confidence": 0
     },
     {
-      "name": "Junction Temperature Max",
-      "value": "",
+      "name": "Logic input high level",
+      "value": NaN,
+      "unit": "V",
+      "Symbol": "VIH",
+      "confidence": 0
+    },
+    {
+      "name": "Dropout Voltage",
+      "value": NaN,
+      "unit": "V",
+      "Symbol": "VOL",
+      "confidence": 0
+    },
+    {
+      "name": "Regulated output",
+      "value": NaN,
+      "unit": "V",
+      "Symbol": "VO",
+      "confidence": 0
+    },
+    {
+      "name": "Line Regulation",
+      "value": NaN,
+      "unit": "mV",
+      "Symbol": "",
+      "confidence": 0
+    },
+    {
+      "name": "Load Regulation",
+      "value": NaN,
+      "unit": "V/A",
+      "Symbol": "",
+      "confidence": 0
+    },
+    {
+      "name": "Feedback pin current",
+      "value": NaN,
+      "unit": "A",
+      "Symbol": "",
+      "confidence": 0
+    },
+    {
+      "name": "Junction Temperature",
+      "value": NaN,
       "unit": "°C",
-      "source_page": null,
-      "extraction_method": "not_found",
-      "confidence": 0,
-      "manually_edited": false,
-      "source_text": "",
-      "notes": ""
+      "Symbol": "TJ",
+      "confidence": 0
+    },
+    {
+      "name": "Ambient Temperature",
+      "value": NaN,
+      "unit": "°C",
+      "Symbol": "TA",
+      "confidence": 0
     }
   ]
 }

@@ -38,3 +38,21 @@ export interface ExportData {
   };
   parameters: Parameter[];
 }
+
+export interface GraphCurve {
+  id: string;
+  name: string;
+  equation: string;
+  x_axis: string;
+  y_axis: string;
+  x_range?: string;
+  notes?: string;
+}
+
+export interface GraphAnalysisResult {
+  success: boolean;
+  curves: GraphCurve[];
+  graph_description?: string;
+  question_answer?: string;
+  error?: string;
+}
