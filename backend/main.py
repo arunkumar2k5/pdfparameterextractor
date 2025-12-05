@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +14,8 @@ from parameter_extractor import ParameterExtractor
 from markdown_converter import MarkdownConverter
 from markdown_parameter_extractor import MarkdownParameterExtractor
 from openai_extractor import OpenAIExtractor
+from vision_extractor import VisionExtractor
+from config import APIConfig
 import dev_cache
 
 app = FastAPI(title="Engineering Parameter Extraction Tool")
@@ -46,6 +48,26 @@ session_data = {
 @app.get("/")
 async def root():
     return {"message": "Engineering Parameter Extraction API"}
+
+
+@app.get("/api/config")
+async def get_config():
+    """Get current API configuration"""
+    try:
+        config_info = APIConfig.get_provider_info()
+        is_valid, error_msg = APIConfig.validate_config()
+        
+        return {
+            "success": True,
+            "config": config_info,
+            "is_valid": is_valid,
+            "error": error_msg if not is_valid else None
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 
 @app.post("/api/upload-parameters")
@@ -197,18 +219,18 @@ async def extract_parameters(request: Dict[str, Any]):
         results = []
         
         if mode == "ai":
-            # AI-powered extraction using OpenAI (reads API key from .env)
+            # AI-powered extraction using configured provider (OpenAI or OpenRouter)
             try:
-                extractor = OpenAIExtractor()  # Reads from .env automatically
+                extractor = OpenAIExtractor()  # Reads from config/.env automatically
                 results = extractor.extract_parameters(
                     session_data["markdown"],
                     session_data["parameters"],
                     session_data.get("page_mapping")
                 )
             except ValueError as e:
-                raise HTTPException(status_code=400, detail=f"OpenAI API key not configured. Please set OPENAI_API_KEY in backend/.env file")
+                raise HTTPException(status_code=400, detail=f"API configuration error: {str(e)}. Please check your .env file.")
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"OpenAI extraction failed: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"AI extraction failed: {str(e)}")
         
         else:
             # Simple search mode (existing logic)
@@ -293,6 +315,57 @@ async def export_data(data: Dict[str, Any]):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/analyze-graph")
+async def analyze_graph(file: UploadFile = File(...), prompt: str = Form(None)):
+    """Analyze a graph image using vision AI"""
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="Only image files are supported")
+        
+        # Read image data
+        image_data = await file.read()
+        
+        # Get image format
+        image_format = file.content_type.split('/')[-1]
+        if image_format == 'jpeg':
+            image_format = 'jpeg'
+        elif image_format == 'jpg':
+            image_format = 'jpeg'
+        
+        # Initialize vision extractor
+        try:
+            extractor = VisionExtractor()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Vision API configuration error: {str(e)}")
+        
+        # Debug: Print what we received
+        print(f"📥 Received prompt from frontend: '{prompt}'")
+        
+        # Analyze the graph
+        if prompt and prompt.strip():
+            print(f"✅ Using analyze_graph with user question")
+            result = extractor.analyze_graph(image_data, prompt)
+        else:
+            print(f"⚠️ No prompt provided, using extract_equation")
+            result = extractor.extract_equation(image_data)
+        
+        if result["success"]:
+            return {
+                "success": True,
+                "answer": result["answer"],
+                "model": result["model"],
+                "provider": result["provider"]
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result.get("error", "Analysis failed"))
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Graph analysis failed: {str(e)}")
 
 
 if __name__ == "__main__":

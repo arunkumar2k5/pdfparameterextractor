@@ -1,6 +1,6 @@
 """
-OpenAI-powered parameter extraction from markdown datasheets.
-Uses GPT-3.5-turbo for intelligent parameter extraction.
+AI-powered parameter extraction from markdown datasheets.
+Supports both OpenAI and OpenRouter APIs for intelligent parameter extraction.
 """
 
 import json
@@ -8,27 +8,47 @@ import os
 from typing import List, Dict, Any
 from openai import OpenAI
 from dotenv import load_dotenv
+from config import APIConfig
 
 # Load environment variables
 load_dotenv()
 
 
 class OpenAIExtractor:
-    """Extract parameters from markdown using OpenAI GPT-3.5"""
+    """Extract parameters from markdown using AI (OpenAI or OpenRouter)"""
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, provider: str = None):
         """
-        Initialize OpenAI extractor.
+        Initialize AI extractor with support for OpenAI and OpenRouter.
         
         Args:
-            api_key: OpenAI API key. If None, reads from .env file
+            api_key: API key. If None, reads from config/env
+            provider: API provider ('openai' or 'openrouter'). If None, reads from config
         """
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
-        if not self.api_key:
-            raise ValueError("OpenAI API key not provided. Set OPENAI_API_KEY in .env file or pass as parameter.")
+        # Determine provider
+        self.provider = provider or APIConfig.API_PROVIDER
         
-        self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-3.5-turbo"
+        # Validate configuration
+        is_valid, error_msg = APIConfig.validate_config()
+        if not is_valid and not api_key:
+            raise ValueError(f"Configuration error: {error_msg}")
+        
+        # Get API key
+        self.api_key = api_key or APIConfig.get_api_key()
+        if not self.api_key:
+            raise ValueError(f"API key not provided for {self.provider}. Set in .env file or pass as parameter.")
+        
+        # Get base URL and model
+        self.base_url = APIConfig.get_base_url()
+        self.model = APIConfig.get_model()
+        
+        # Initialize OpenAI client (works for both OpenAI and OpenRouter)
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url=self.base_url
+        )
+        
+        print(f"🤖 Initialized AI Extractor with {self.provider.upper()} - Model: {self.model}")
     
     def extract_parameters(self, markdown: str, parameters: List[str], page_mapping: Dict = None) -> List[Dict[str, Any]]:
         """
@@ -57,8 +77,8 @@ class OpenAIExtractor:
                         "content": prompt
                     }
                 ],
-                temperature=0.1,  # Low temperature for consistent extraction
-                max_tokens=2000,
+                temperature=APIConfig.TEMPERATURE,
+                max_tokens=APIConfig.MAX_TOKENS,
                 response_format={"type": "json_object"}
             )
             

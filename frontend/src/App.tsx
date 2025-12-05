@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import FileUpload from './components/FileUpload';
 import ParameterList from './components/ParameterList';
 import PDFViewer from './components/PDFViewer';
+import GraphAnalysis from './components/GraphAnalysis';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Parameter, ExtractionMetadata } from './types';
+import { FileText, BarChart3 } from 'lucide-react';
+
+type TabType = 'extraction' | 'graph';
 
 function App() {
+  const [activeTab, setActiveTab] = useState<TabType>('extraction');
   const [parameters, setParameters] = useState<Parameter[]>([]);
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [markdownContent, setMarkdownContent] = useState<string>('');
@@ -74,44 +79,82 @@ function App() {
         </p>
       </header>
 
-      {/* File Upload Section */}
-      <FileUpload
-        onParametersUploaded={handleParametersUploaded}
-        onPdfUploaded={handlePdfUploaded}
-        onExtractionComplete={handleExtractionComplete}
-        parametersCount={parameters.length}
-        hasPdf={!!pdfUrl}
-        loading={loading}
-        setLoading={setLoading}
-      />
-
-      {/* Main Content - Split View */}
-      <div className="flex-1 overflow-hidden">
-        <PanelGroup direction="horizontal">
-          {/* Left Panel - Parameter List */}
-          <Panel defaultSize={50} minSize={30}>
-            <ParameterList
-              parameters={parameters}
-              onParameterUpdate={handleParameterUpdate}
-              onParameterSelect={handleParameterSelect}
-              selectedParameter={selectedParameter}
-              metadata={metadata}
-            />
-          </Panel>
-
-          {/* Resize Handle */}
-          <PanelResizeHandle className="w-2 bg-gray-300 hover:bg-blue-500 transition-colors cursor-col-resize" />
-
-          {/* Right Panel - PDF Viewer */}
-          <Panel defaultSize={50} minSize={30}>
-            <PDFViewer
-              pdfUrl={pdfUrl}
-              markdownContent={markdownContent}
-              selectedParameter={selectedParameter}
-            />
-          </Panel>
-        </PanelGroup>
+      {/* Tab Navigation */}
+      <div className="bg-white border-b border-gray-200 px-6">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setActiveTab('extraction')}
+            className={`flex items-center px-4 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'extraction'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+            }`}
+          >
+            <FileText className="mr-2" size={18} />
+            Parameter Extraction
+          </button>
+          <button
+            onClick={() => setActiveTab('graph')}
+            className={`flex items-center px-4 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'graph'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+            }`}
+          >
+            <BarChart3 className="mr-2" size={18} />
+            Graph Analysis
+          </button>
+        </div>
       </div>
+
+      {/* Tab Content */}
+      {activeTab === 'extraction' ? (
+        <>
+          {/* File Upload Section */}
+          <FileUpload
+            onParametersUploaded={handleParametersUploaded}
+            onPdfUploaded={handlePdfUploaded}
+            onExtractionComplete={handleExtractionComplete}
+            parametersCount={parameters.length}
+            hasPdf={!!pdfUrl}
+            loading={loading}
+            setLoading={setLoading}
+          />
+
+          {/* Main Content - Split View */}
+          <div className="flex-1 overflow-hidden">
+            <PanelGroup direction="horizontal">
+              {/* Left Panel - Parameter List */}
+              <Panel defaultSize={50} minSize={30}>
+                <ParameterList
+                  parameters={parameters}
+                  onParameterUpdate={handleParameterUpdate}
+                  onParameterSelect={handleParameterSelect}
+                  selectedParameter={selectedParameter}
+                  metadata={metadata}
+                />
+              </Panel>
+
+              {/* Resize Handle */}
+              <PanelResizeHandle className="w-2 bg-gray-300 hover:bg-blue-500 transition-colors cursor-col-resize" />
+
+              {/* Right Panel - PDF Viewer */}
+              <Panel defaultSize={50} minSize={30}>
+                <PDFViewer
+                  pdfUrl={pdfUrl}
+                  markdownContent={markdownContent}
+                  selectedParameter={selectedParameter}
+                />
+              </Panel>
+            </PanelGroup>
+          </div>
+        </>
+      ) : (
+        /* Graph Analysis Tab */
+        <div className="flex-1 overflow-hidden">
+          <GraphAnalysis />
+        </div>
+      )}
     </div>
   );
 }
