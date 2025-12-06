@@ -5,12 +5,21 @@ import PDFViewer from './components/PDFViewer';
 import GraphAnalysis from './components/GraphAnalysis';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Parameter, ExtractionMetadata } from './types';
+<<<<<<< HEAD
 import { FileText, TrendingUp } from 'lucide-react';
 
 type TabType = 'parameters' | 'graphs';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('parameters');
+=======
+import { FileText, BarChart3 } from 'lucide-react';
+
+type TabType = 'extraction' | 'graph';
+
+function App() {
+  const [activeTab, setActiveTab] = useState<TabType>('extraction');
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
   const [parameters, setParameters] = useState<Parameter[]>([]);
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [markdownContent, setMarkdownContent] = useState<string>('');
@@ -80,6 +89,7 @@ function App() {
       </header>
 
       {/* Tab Navigation */}
+<<<<<<< HEAD
       <div className="bg-white border-b border-gray-200">
         <div className="px-6 flex space-x-1">
           <button
@@ -102,13 +112,41 @@ function App() {
             }`}
           >
             <TrendingUp className="w-4 h-4 mr-2" />
+=======
+      <div className="bg-white border-b border-gray-200 px-6">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setActiveTab('extraction')}
+            className={`flex items-center px-4 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'extraction'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+            }`}
+          >
+            <FileText className="mr-2" size={18} />
+            Parameter Extraction
+          </button>
+          <button
+            onClick={() => setActiveTab('graph')}
+            className={`flex items-center px-4 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === 'graph'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+            }`}
+          >
+            <BarChart3 className="mr-2" size={18} />
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
             Graph Analysis
           </button>
         </div>
       </div>
 
       {/* Tab Content */}
+<<<<<<< HEAD
       {activeTab === 'parameters' ? (
+=======
+      {activeTab === 'extraction' ? (
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
         <>
           {/* File Upload Section */}
           <FileUpload
@@ -150,7 +188,14 @@ function App() {
           </div>
         </>
       ) : (
+<<<<<<< HEAD
         <GraphAnalysis loading={loading} setLoading={setLoading} />
+=======
+        /* Graph Analysis Tab */
+        <div className="flex-1 overflow-hidden">
+          <GraphAnalysis />
+        </div>
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
       )}
     </div>
   );

@@ -14,7 +14,12 @@ from parameter_extractor import ParameterExtractor
 from markdown_converter import MarkdownConverter
 from markdown_parameter_extractor import MarkdownParameterExtractor
 from openai_extractor import OpenAIExtractor
+<<<<<<< HEAD
 from graph_analyzer import GraphAnalyzer
+=======
+from vision_extractor import VisionExtractor
+from config import APIConfig
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
 import dev_cache
 
 app = FastAPI(title="Engineering Parameter Extraction Tool")
@@ -47,6 +52,26 @@ session_data = {
 @app.get("/")
 async def root():
     return {"message": "Engineering Parameter Extraction API"}
+
+
+@app.get("/api/config")
+async def get_config():
+    """Get current API configuration"""
+    try:
+        config_info = APIConfig.get_provider_info()
+        is_valid, error_msg = APIConfig.validate_config()
+        
+        return {
+            "success": True,
+            "config": config_info,
+            "is_valid": is_valid,
+            "error": error_msg if not is_valid else None
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 
 @app.post("/api/upload-parameters")
@@ -198,13 +223,17 @@ async def extract_parameters(request: Dict[str, Any]):
         results = []
         
         if mode == "ai":
-            # AI-powered extraction using OpenAI (reads API key from .env)
+            # AI-powered extraction using configured provider (OpenAI or OpenRouter)
             try:
+<<<<<<< HEAD
                 print(f"\n🤖 Starting AI extraction for {len(session_data['parameters'])} parameters...")
                 print(f"📋 Parameters: {session_data['parameters']}")
                 print(f"📄 Markdown length: {len(session_data.get('markdown', ''))} chars")
                 
                 extractor = OpenAIExtractor()  # Reads from .env automatically
+=======
+                extractor = OpenAIExtractor()  # Reads from config/.env automatically
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
                 results = extractor.extract_parameters(
                     session_data["markdown"],
                     session_data["parameters"],
@@ -216,6 +245,7 @@ async def extract_parameters(request: Dict[str, Any]):
                 print(f"   Found: {found_count}, Not found: {len(results) - found_count}")
                 
             except ValueError as e:
+<<<<<<< HEAD
                 print(f"❌ API key error: {str(e)}")
                 raise HTTPException(status_code=400, detail=f"OpenAI API key not configured. Please set OPENAI_API_KEY in backend/.env file")
             except Exception as e:
@@ -223,6 +253,11 @@ async def extract_parameters(request: Dict[str, Any]):
                 import traceback
                 traceback.print_exc()
                 raise HTTPException(status_code=500, detail=f"OpenAI extraction failed: {str(e)}")
+=======
+                raise HTTPException(status_code=400, detail=f"API configuration error: {str(e)}. Please check your .env file.")
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"AI extraction failed: {str(e)}")
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
         
         else:
             # Simple search mode (existing logic)
@@ -310,16 +345,22 @@ async def export_data(data: Dict[str, Any]):
 
 
 @app.post("/api/analyze-graph")
+<<<<<<< HEAD
 async def analyze_graph(
     file: UploadFile = File(...),
     question: str = Form(None)
 ):
     """Analyze graph image and extract equations or answer a custom question using OpenAI Vision API"""
+=======
+async def analyze_graph(file: UploadFile = File(...), prompt: str = Form(None)):
+    """Analyze a graph image using vision AI"""
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
     try:
         # Validate file type
         if not file.content_type or not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="Only image files are supported")
         
+<<<<<<< HEAD
         print(f"\n📊 Received graph image: {file.filename}")
         if question:
             print(f"❓ Custom question: {question}")
@@ -357,12 +398,54 @@ async def analyze_graph(
             import traceback
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=f"Graph analysis failed: {str(e)}")
+=======
+        # Read image data
+        image_data = await file.read()
+        
+        # Get image format
+        image_format = file.content_type.split('/')[-1]
+        if image_format == 'jpeg':
+            image_format = 'jpeg'
+        elif image_format == 'jpg':
+            image_format = 'jpeg'
+        
+        # Initialize vision extractor
+        try:
+            extractor = VisionExtractor()
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Vision API configuration error: {str(e)}")
+        
+        # Debug: Print what we received
+        print(f"📥 Received prompt from frontend: '{prompt}'")
+        
+        # Analyze the graph
+        if prompt and prompt.strip():
+            print(f"✅ Using analyze_graph with user question")
+            result = extractor.analyze_graph(image_data, prompt)
+        else:
+            print(f"⚠️ No prompt provided, using extract_equation")
+            result = extractor.extract_equation(image_data)
+        
+        if result["success"]:
+            return {
+                "success": True,
+                "answer": result["answer"],
+                "model": result["model"],
+                "provider": result["provider"]
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result.get("error", "Analysis failed"))
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
     
     except HTTPException:
         raise
     except Exception as e:
+<<<<<<< HEAD
         print(f"❌ Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+=======
+        raise HTTPException(status_code=500, detail=f"Graph analysis failed: {str(e)}")
+>>>>>>> 7560fa43c8d7e652d881cb9f983e0c44ad3dd6e5
 
 
 if __name__ == "__main__":
